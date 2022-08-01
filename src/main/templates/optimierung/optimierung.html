@@ -1,0 +1,154 @@
+{% extends 'layout/manage.html' %}
+{% load static %}
+
+{% block css %}
+  <style>
+    .container-fluid .head {
+        margin-top: 2rem;
+    }
+    #gaugeChart{
+        min-height: 400px;
+        width: 100%;
+    }
+  </style>
+{% endblock %}
+{% block title %}Optimierungstool{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row head">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-database"></i> Knowledge Generation
+                    </div>
+                    <div class="card-body">
+                           <form  method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="number_generate" class="form-label" >Sample to Generate</label>
+                                    <input type="number" class="form-control" id="number_generate" name="number_generate" required>
+                                </div>
+                                <div class="mb-3">
+                                    <input class="btn btn-primary" type="submit" name="sample_generate" value="Generate">
+                                </div>
+                            </form>
+                    </div>
+                </div>
+                 <div class="card mt-5">
+                    <div class="card-header">
+                        <i class="fa-solid fa-gears"></i> Optimierungs Settings
+                    </div>
+                    <div class="card-body">
+                           <form  method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col mb-3">
+                                        <label for="lower_bound" class="form-label" >Lower bound to optimize</label>
+                                        <input type="number" class="form-control" id="lower_bound" name="lower_bound" required>
+                                    </div>
+                                    <div class="col mb-3">
+                                        <label for="upper_bound" class="form-label" >Upper bound to optimize</label>
+                                        <input type="number" class="form-control" id="upper_bound" name="upper_bound" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <input class="btn btn-primary" type="submit" name="sample_optimize" value="Optimize">
+                                </div>
+                            </form>
+                    </div>
+                </div>
+            </div>
+                    
+            <div class="col-md-6">
+                    <div class="card ">
+                        <div class="card-header">
+                            <i class="fa-solid fa-fire-extinguisher"></i> Optimierungs Status
+                        </div>
+                        <div class="card-body">
+                            <div id="gaugeChart">
+
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+    </div>
+{% endblock content %}
+{% block js %}
+    <script src="{% static 'js/echarts.min.js' %}"></script>
+    <script>
+        var chartDom = document.getElementById('gaugeChart');
+        var myChart = echarts.init(chartDom);
+        var option;
+
+        option = {
+        series: [
+            {
+            type: 'gauge',
+            axisLine: {
+                lineStyle: {
+                width: 30,
+                color: [
+                    [0.3, '#67e0e3'],
+                    [0.7, '#37a2da'],
+                    [1, '#fd666d']
+                ]
+                }
+            },
+            pointer: {
+                itemStyle: {
+                color: 'auto'
+                }
+            },
+            axisTick: {
+                distance: -30,
+                length: 8,
+                lineStyle: {
+                color: '#fff',
+                width: 2
+                }
+            },
+            splitLine: {
+                distance: -30,
+                length: 30,
+                lineStyle: {
+                color: '#fff',
+                width: 4
+                }
+            },
+            axisLabel: {
+                color: 'auto',
+                distance: 40,
+                fontSize: 10
+            },
+            detail: {
+                valueAnimation: true,
+                formatter: '{value} km/h',
+                color: 'auto'
+            },
+            data: [
+                {
+                value: 70
+                }
+            ]
+            }
+        ]
+        };
+        setInterval(function () {
+        myChart.setOption({
+            series: [
+            {
+                data: [
+                {
+                    value: +(Math.random() * 100).toFixed(2)
+                }
+                ]
+            }
+            ]
+        });
+        }, 2000);
+
+        option && myChart.setOption(option);
+    </script>
+{% endblock js %}

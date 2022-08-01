@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>{% block title %}{% endblock title %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon/flamingo.png' %}">
+
+    <link rel="stylesheet" href="{% static 'plugin/bootstrap/css/bootstrap.min.css' %}"
+    />
+    <link rel="stylesheet" href="{% static 'plugin/fontawesome-6/css/fontawesome.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugin/fontawesome-6/css/all.min.css' %}">
+
+    {% block css %}
+    {% endblock css %}
+  </head>
+  <body>
+    <!--navbar-->
+    {% include 'layout/navbar.html' %}
+        <div class="container">
+            {% block content %}
+            {% endblock content %}
+        </div>
+
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'plugin/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    {% block js %}{% endblock js %}
+  </body>
+</html>

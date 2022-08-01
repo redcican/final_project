@@ -1,0 +1,224 @@
+{% extends 'layout/manage.html' %}
+{% load  static %}
+{% load mathfilters %}
+
+{% block css %}
+<style>
+.card-header{
+    background-color: #fff;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+}
+.card-text{
+    font-size: 25px;
+}
+.f-left {
+    float: left;
+}
+
+.f-right {
+    float: right;
+}
+
+.card {
+    border-radius: 5px;
+    -webkit-box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
+    box-shadow: 0 1px 2.94px 0.06px rgba(4,26,55,0.16);
+    border: none;
+    -webkit-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+.bg-c-blue {
+     background: linear-gradient(315deg, #eec0c6 0%, #7ee8fa 74%);;
+}
+
+.fa-arrow-up {
+    color: #ff0000;
+}
+.fa-arrow-down{
+    color: #26C281;
+}
+
+
+</style>
+{% endblock %}
+
+{% block title %}Summary{% endblock %}
+
+{% block content %}
+    <div class="row">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-header">
+                            <div class="d-flex justify-content-start">
+                                <h2>Gattierungsummary</h2>
+                            </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card l-bg-cherry">
+                                    <div class="card-statistic-3 p-4">
+                                        <div class="mb-4">
+                                            <h5 class="card-title mb-0">Kreislaufschrotte</h5>
+                                        </div>
+                                        <div class="row align-items-center mb-2 d-flex">
+                                            <div class="col-8">
+                                                <h3 class="d-flex align-items-center mb-0">
+                                                    {{kreislauf_menge|floatformat:1}} kg
+                                                </h3>  
+                                            </div>
+                                            <div class="col-4 text-right">
+                                                {% if kreislauf_change_rate > 0 %}
+                                                <span>{{kreislauf_change_rate|floatformat:2}} % <i class="fa fa-arrow-up"></i></span>
+                                                {% else %}
+                                                <span>{{kreislauf_change_rate|abs|floatformat:2}} % <i class="fa fa-arrow-down"></i></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>   
+                                        <div class="progress mt-1" style="height: 15px;">
+                                            <div class="progress-bar" role="progressbar" data-width="25%" aria-valuenow="{{kreislauf_anteil|floatformat:2}}" aria-valuemin="0" aria-valuemax="100" style="width: {{kreislauf_anteil|floatformat:2}}%;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card l-bg-cherry">
+                                    <div class="card-statistic-3 p-4">
+                                        <div class="mb-4">
+                                            <h5 class="card-title mb-0">Fremdschrotte</h5>
+                                        </div>
+                                        <div class="row align-items-center mb-2 d-flex">
+                                            <div class="col-8">
+                                                <h3 class="d-flex align-items-center mb-0">
+                                                    {{fremdschrott_menge|floatformat:1}} kg
+                                                </h3>  
+                                            </div>
+                                            <div class="col-4 text-right">
+                                                {% if fremdschrott_change_rate > 0 %}
+                                                <span>{{fremdschrott_change_rate|floatformat:2}} % <i class="fa fa-arrow-up"></i></span>
+                                                {% else %}
+                                                <span>{{fremdschrott_change_rate|abs|floatformat:2}} % <i class="fa fa-arrow-down"></i></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="progress mt-1 " style="height: 15px;">
+                                            <div class="progress-bar l-bg-cyan" role="progressbar" data-width="25%" aria-valuenow="{{fremd_anteil|floatformat:2}}" aria-valuemin="0" aria-valuemax="100" style="width: {{fremd_anteil|floatformat:2}}%;"></div>
+                                        </div>
+                                    </div>
+                                </div>              
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card l-bg-cherry">
+                                    <div class="card-statistic-3 p-4">
+                                        <div class="mb-4">
+                                            <h5 class="card-title mb-0">Legierungen</h5>
+                                        </div>
+                                        <div class="row align-items-center mb-2 d-flex">
+                                            <div class="col-8">
+                                                <h3 class="d-flex align-items-center mb-0">
+                                                    {{legierung_menge|floatformat:1}} kg
+                                                </h3>  
+                                            </div>
+                                            <div class="col-4 text-right">
+                                                {% if legierung_change_rate > 0 %}
+                                                <span>{{legierung_change_rate|floatformat:2}} % <i class="fa fa-arrow-up"></i></span>
+                                                {% else %}
+                                                <span>{{legierung_change_rate|abs|floatformat:2}} % <i class="fa fa-arrow-down"></i></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="progress mt-1 " style="height: 15px;">
+                                            <div class="progress-bar l-bg-cyan" role="progressbar" data-width="25%" aria-valuenow="{{leg_anteil|floatformat:2}}" aria-valuemin="0" aria-valuemax="100" style="width: {{leg_anteil|floatformat:2}}%;"></div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <div class="card l-bg-cherry">
+                                    <div class="card-statistic-3 p-4">
+                                        <div class="mb-4">
+                                            <h5 class="card-title mb-0">Totalgewicht</h5>
+                                        </div>
+                                        <div class="row align-items-center mb-2 d-flex">
+                                            <div class="col-8">
+                                                <h3 class="d-flex align-items-center mb-0">
+                                                    {{total_gewicht|floatformat:1}} kg
+                                                </h3>  
+                                            </div>
+                                            <div class="col-4 text-right">
+                                                {% if total_gewicht_change_rate > 0 %}
+                                                <span>{{total_gewicht_change_rate|floatformat:2}} % <i class="fa fa-arrow-up"></i></span>
+                                                {% else %}
+                                                <span>{{total_gewicht_change_rate|abs|floatformat:2}} % <i class="fa fa-arrow-down"></i></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>              
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card l-bg-cherry">
+                                    <div class="card-statistic-3 p-4">
+                                        <div class="mb-4">
+                                            <h5 class="card-title mb-0">Energieverbrauch</h5>
+                                        </div>
+                                        <div class="row align-items-center mb-2 d-flex">
+                                            <div class="col-8">
+                                                <h3 class="d-flex align-items-center mb-0">
+                                                    {{energie|floatformat:1}} kWh
+                                                </h3>  
+                                            </div>
+                                            <div class="col-4 text-right">
+                                                {% if energie_change_rate > 0 %}
+                                                <span>{{energie_change_rate|floatformat:2}} % <i class="fa fa-arrow-up"></i></span>
+                                                {% else %}
+                                                <span>{{energie_change_rate|abs|floatformat:2}} % <i class="fa fa-arrow-down"></i></span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>    
+            </div>
+        </div>
+        <div class="col-6">
+                <div class="card">
+                    <div class="card-header">
+                            <div class="d-flex justify-content-start">
+                                <h2>Zukauf Schrotte</h2>
+                            </div>
+                    </div>
+                    <div class="card-body p-0" style="overflow-x:auto;">
+                        <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Firma Name</th>
+                                {% for gatt_name in schrott_name_list%}
+                                    <th scope="col">{{gatt_name}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                         {% for single in schrott_table %}
+                        <tr>
+                          {% for element in single %} 
+                                <td>{{element}}</td>
+                            {% endfor %}
+                        </tr>    
+                         {% endfor %}
+                        </tbody>
+                     </table>
+                    </div>
+                </div>
+        </div>  
+{% endblock %}
+
+{% block js %}
+{% endblock %}
