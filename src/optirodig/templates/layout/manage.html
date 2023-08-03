@@ -1,0 +1,63 @@
+{% load static %}
+{% load project %}
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon/flamingo.png' %}">
+
+    <title>{% block title %}{% endblock title %}</title>
+    <link rel="stylesheet" href="{% static 'plugin/bootstrap/css/bootstrap.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugin/fontawesome-6/css/fontawesome.min.css' %}"/>
+    <link rel="stylesheet" href="{% static 'plugin/fontawesome-6/css/all.min.css' %}">
+    
+
+    <link rel="stylesheet" href="{% static 'css/manage.css' %}">
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'plugin/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"
+      integrity="sha512-BkpSL20WETFylMrcirBahHfSnY++H2O1W+UnEEO4yNIl+jI2+zowyoGJpbtk6bx97fBXf++WJHSSK2MV4ghPcg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+     <script type="module" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+
+
+    {% block css %}
+    <style>
+        .error-msg {
+            color:red;
+            position: absolute;
+            font-size: 12px;
+        }
+    </style>
+    {% endblock css %}
+  </head>
+  <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid mx-5">
+
+      <a class="navbar-brand" href="{% url 'optirodig:home' %}">Home</a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mb-2 mb-lg-0">
+        {% manage_menu_list request %}
+      </ul>
+    </div>
+  </div>
+</nav>
+    <div class="container-fluid px-5">
+        {% block content %}
+        {% endblock content %}
+    </div>
+    {% block js %}{% endblock js %}
+  </body>
+</html>

@@ -1,0 +1,333 @@
+{% extends 'layout/manage.html' %}
+{% load static %}
+
+{% block css %}
+  <style>
+    .container-fluid .head {
+        margin-top: 2rem;
+    }
+
+    a{
+        text-decoration: none;
+    }
+
+    .error-msg {
+            color:red;
+            position: absolute;
+            font-size: 12px;
+        }
+    #stackAreaChart{
+        height: 500px;
+    }
+  </style>
+{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row head">
+                    <div class="col-md-6">
+                        <div class="card ">
+                            <div class="card-header">
+                                <i class="fa-solid fa-upload"></i> Upload Werkstoffe Datei
+                            </div>
+                            <div class="card-body">
+                                <form  method="post" enctype="multipart/form-data" novalidate>
+                                    {% csrf_token %}
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="row">
+                                                <label for="{{ upload_form.handler.id_for_label }}" class="col-sm-4 col-form-label">
+                                                    {{ upload_form.handler.label }}</label>
+                                                <div class="col-sm-8">
+                                                    {{ upload_form.handler}}
+                                                    <span class="error-msg"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="row">
+                                                <label for="{{ upload_form.form.id_for_label }}" class="col-sm-2 col-form-label">
+                                                    {{ upload_form.form.label }}</label>
+                                                <div class="col-sm-10">
+                                                    {{ upload_form.form }}
+                                                    <span class="error-msg"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="row">
+                                                <label for="{{ upload_form.spezifikation.id_for_label }}" class="col-sm-4 col-form-label">
+                                                    {{ upload_form.spezifikation.label }}</label>
+                                                <div class="col-sm-8">
+                                                    {{ upload_form.spezifikation}}
+                                                    <span class="error-msg"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="row">
+                                                <label for="{{ upload_form.upload_file.id_for_label }}" class="col-sm-2 col-form-label">
+                                                    {{ upload_form.upload_file.label }}</label>
+                                                <div class="col-sm-10">
+                                                    {% comment %} {{ upload_form.upload_file }} {% endcomment %}
+                                                    <input type="file" name="upload_file" class="form-control" id="upload_file"/>
+                                                    <span class="error-msg"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                        <button type="submit" class="btn btn-primary float-end">Upload</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        <div class="row mt-3">
+            <div class="col">
+                <div class="card ">
+                    <div class="card-header">
+                        <i class="fa-solid fa-drum-steelpan"></i> Spezifikation für jedes Unternehmen
+                    </div>
+                    <div class="card-body">
+                        <div id="stackAreaChart">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block js %}
+    <script src="{% static 'js/echarts.min.js' %}"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        var INIT_STACKAREA_CHART_URL = "{% url 'optirodig:werkstoffe_stackarea' %}"
+
+        $(function (){
+           initStackAreaChart();
+        });
+
+        function initStackAreaChart(){
+            const stackAreaChart = echarts.init(document.getElementById('stackAreaChart'));
+
+            const option = {
+              color: ['#80FFA5', '#00DDFF', '#37A2FF', '#FF0087', '#FFBF00'],
+              title: {},
+              tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                  type: 'cross',
+                  label: {
+                    backgroundColor: '#6a7985'
+                  }
+                }
+              },
+              legend: {
+                data: []  // firma name
+              },
+              toolbox: {
+                show: true,
+                feature: {
+                    mark: {show: true},
+                    dataView: {show: true, readOnly: false},
+                    restore: {show: true},
+                    saveAsImage: {show: true}
+                }
+              },
+              grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+              },
+              xAxis: [
+                {
+                  type: 'category',
+                  boundaryGap: false,
+                    axisLabel: {
+                    interval: 0,
+                  },
+                    data: []  // werkstoffe names
+                }
+              ],
+              yAxis: [
+                {
+                  type: 'value'
+                }
+              ],
+              series: [
+                {
+                  name: '', // firma 1
+                  type: 'line',
+                  stack: 'Total',
+                  smooth: true,
+                  lineStyle: {
+                    width: 0
+                  },
+                  showSymbol: false,
+                  areaStyle: {
+                    opacity: 0.8,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      {
+                        offset: 0,
+                        color: 'rgb(128, 255, 165)'
+                      },
+                      {
+                        offset: 1,
+                        color: 'rgb(1, 191, 236)'
+                      }
+                    ])
+                  },
+                  emphasis: {
+                    focus: 'series'
+                  },
+                  data: []
+                },
+                {
+                  name: '',
+                  type: 'line',
+                  stack: 'Total',
+                  smooth: true,
+                  lineStyle: {
+                    width: 0
+                  },
+                  showSymbol: false,
+                  areaStyle: {
+                    opacity: 0.8,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      {
+                        offset: 0,
+                        color: 'rgb(0, 221, 255)'
+                      },
+                      {
+                        offset: 1,
+                        color: 'rgb(77, 119, 255)'
+                      }
+                    ])
+                  },
+                  emphasis: {
+                    focus: 'series'
+                  },
+                  data: []
+                },
+                {
+                  name: '',
+                  type: 'line',
+                  stack: 'Total',
+                  smooth: true,
+                  lineStyle: {
+                    width: 0
+                  },
+                  showSymbol: false,
+                  areaStyle: {
+                    opacity: 0.8,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      {
+                        offset: 0,
+                        color: 'rgb(55, 162, 255)'
+                      },
+                      {
+                        offset: 1,
+                        color: 'rgb(116, 21, 219)'
+                      }
+                    ])
+                  },
+                  emphasis: {
+                    focus: 'series'
+                  },
+                  data: []
+                },
+                {
+                  name: '',
+                  type: 'line',
+                  stack: 'Total',
+                  smooth: true,
+                  lineStyle: {
+                    width: 0
+                  },
+                  showSymbol: false,
+                  areaStyle: {
+                    opacity: 0.8,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      {
+                        offset: 0,
+                        color: 'rgb(255, 0, 135)'
+                      },
+                      {
+                        offset: 1,
+                        color: 'rgb(135, 0, 157)'
+                      }
+                    ])
+                  },
+                  emphasis: {
+                    focus: 'series'
+                  },
+                  data: []
+                },
+                {
+                  name: '',
+                  type: 'line',
+                  stack: 'Total',
+                  smooth: true,
+                  lineStyle: {
+                    width: 0
+                  },
+                  showSymbol: false,
+                  label: {
+                    show: true,
+                    position: 'top'
+                  },
+                  areaStyle: {
+                    opacity: 0.8,
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                      {
+                        offset: 0,
+                        color: 'rgb(255, 191, 0)'
+                      },
+                      {
+                        offset: 1,
+                        color: 'rgb(224, 62, 76)'
+                      }
+                    ])
+                  },
+                  emphasis: {
+                    focus: 'series'
+                  },
+                  data: []
+                }
+              ]
+            };
+
+            $.ajax({
+               url: INIT_STACKAREA_CHART_URL,
+               type: 'GET',
+               dataType: 'JSON',
+               success: function(res){
+                 if(res.status){
+                     option.legend.data = res.data.firma_name_list;
+                     option.xAxis[0].data = res.data.spezikation_names;
+                     option.series.forEach((item, index) => {
+                         item.name = res.data.firma_name_list[index];
+                         item.data = res.data.menge_list[index];
+                     });
+
+                     stackAreaChart.setOption(option);
+                 }  else{
+                     swal({
+                         title: res.errors,
+                         icon: "error",
+                         button: "OK!",
+                     });
+                 }
+               }
+            });
+        }
+    </script>
+
+{% endblock js %}

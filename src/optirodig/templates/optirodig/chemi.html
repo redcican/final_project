@@ -1,0 +1,88 @@
+{% extends "layout/manage.html" %}
+{% load static %}
+
+{% block css %}
+<style>
+    .container-fluid .head {
+        margin-top: 2rem;
+    }
+</style>
+{% endblock css %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row head">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-area"></i> Chemical Components
+                </div>
+                <div class="card-body">
+                    <table id="data_source_lst" class="table table-bordered table-hover mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">Schrott Name</th>
+                                <th scope="col">C</th>
+                                <th scope="col">Si</th>
+                                <th scope="col">Mn</th>
+                                <th scope="col">Cr</th>
+                                <th scope="col">Mo</th>
+                                <th scope="col">V</th>
+                                <th scope="col">W</th>
+                                <th scope="col">P</th>
+                                <th scope="col">S</th>
+                                <th scope="col">Co</th>
+                                <th scope="col">Ni</th>
+                                <th scope="col">Nb</th>
+                                <th scope="col">Al</th>
+                                <th scope="col">Cu</th>
+                                <th scope="col">N</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                         {% for item in chemi_obj %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.C }}</td>
+                                <td>{{ item.Si }}</td>
+                                <td>{{ item.Mn }}</td>
+                                <td>{{ item.Cr }}</td>
+                                <td>{{ item.Mo }}</td>
+                                <td>{{ item.V }}</td>
+                                <td>{{ item.W }}</td>
+                                <td>{{ item.P }}</td>
+                                <td>{{ item.S }}</td>
+                                <td>{{ item.Co }}</td>
+                                <td>{{ item.Ni }}</td>
+                                <td>{{ item.Nb }}</td>
+                                <td>{{ item.Al }}</td>
+                                <td>{{ item.Cu }}</td>
+                                <td>{{ item.N }}</td>
+                            </tr>
+                         {% endfor %}
+                        </tbody>
+                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block js %}
+<script>
+    $(function(){
+        $('#data_source_lst').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+        });
+    })
+</script>
+{% endblock js %}

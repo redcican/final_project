@@ -1,0 +1,68 @@
+{% extends "layout/manage.html" %}
+{% load static %}
+
+{% block css %}
+<style>
+    .container-fluid .head {
+        margin-top: 2rem;
+    }
+</style>
+{% endblock css %}
+
+{% block title %}Einkaufslist{% endblock title %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row head">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-area"></i> Einkaufslist
+                </div>
+                <div class="card-body">
+                    <table id="data_source_lst" class="table table-bordered table-hover mt-2">
+                        <thead>
+                            <tr>
+                            <th scope="col">Schrotte | Anbieter</th>
+                            {% for name in company_names%}
+                                <th scope="col">{{ name  }}</th>
+                            {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for schrotte, amount in einkaufsliste.items %}
+                            <tr>
+                                <td>{{ schrotte}}</td>
+                                    {% for single in amount%}
+                                        <td>{{ single |floatformat:2 }}</td>
+                                    {% endfor %}
+                            </tr>            
+                         {% endfor %}
+                        </tbody>
+                        </tbody>
+                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block js %}
+<script>
+    $(function(){
+        $('#data_source_lst').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "pageLength": 20,
+        });
+    })
+</script>
+{% endblock js %}
+
+

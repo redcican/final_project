@@ -1,0 +1,423 @@
+{% extends 'layout/manage.html' %}
+{% load static %}
+
+{% block css %}
+  <style>
+    .container-fluid .head {
+        margin-top: 2rem;
+    }
+
+    a{
+        text-decoration: none;
+    }
+
+    .error-msg {
+            color:red;
+            position: absolute;
+            font-size: 12px;
+        }
+
+    #barChart{
+        min-height: 350px;
+    }
+    #pieChart{
+        min-height: 650px;
+    }
+  </style>
+{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="row head">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-chart-area"></i> Händler
+                        <a type="button"
+                       class="btn btn-success mx-3"
+                       data-bs-toggle="modal"
+                       data-bs-target="#addModal"
+                        data-whatever="Einen Neuen Händler Hinzufügen"
+                        >
+                        Neuer Händler
+                    </a>
+                    </div>
+                  <div class="card-body">
+                    <table id="data_source_lst" class="table table-bordered table-hover mt-2">
+                        <thead>
+                            <tr>
+                                <th scope="col">Firma Name</th>
+                                <th scope="col">Telefon</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Adresse</th>
+                                <th scope="col"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                         {% for item in handler_obj %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.telephone }}</td>
+                                <td>{{ item.email }}</td>
+                                <td>{{ item.street }}, {{ item.plz }}, {{ item.city }}</td>
+                                <td>
+                                    <a class="btn btn-outline-primary btn-sm"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#addModal"
+                                       data-fid="{{ item.id }}"
+                                       data-name="{{ item.name }}"
+                                       data-telephone="{{ item.telephone }}"
+                                       data-email="{{ item.email }}"
+                                       data-street="{{ item.street }}"
+                                       data-plz="{{ item.plz }}"
+                                       data-city="{{ item.city }}"
+                                       data-whatever="Bearbeiten">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </a>
+                                    <a class="btn btn-outline-danger btn-sm"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#alertModal"
+                                       data-fid="{{ item.id }}"
+                                    >
+                                        <i class="far fa-trash-alt" aria-hidden="true"></i>
+                                    </a>
+
+                                </td>
+                            </tr>
+                         {% endfor %}
+                        </tbody>
+                     </table>
+                </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fa-solid fa-chart-area"></i> Übersicht
+                    </div>
+                    <div class="card-body">
+                        <div id="barChart">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card mx-auto">
+                        <div class="card-header">
+                            <i class="fa-solid fa-chart-area"></i> Verteilung
+                        </div>
+                        <div class="card-body">
+                            <div id="pieChart">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+
+    </div>
+
+<!-- Add and edit Modal -->
+<div
+  class="modal"
+  id="addModal"
+  tabindex="-1"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="addForm">
+          {% csrf_token %}
+            <input type="hidden" name="fid" id="fid" />
+            {% for field in form %}
+                  <div class="mb-3">
+                    <label for="{{field.id_for_label }}" class="form-label fw-bold">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    <span class="error-msg"></span>
+                  </div>
+          {% endfor %}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Abbrechen
+        </button>
+        <button id="btnSubmit" type="button" class="btn btn-primary">
+          Speichern
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!--Delete Modal-->
+    <div class="modal" id="alertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div
+          class="alert alert-danger alert-dismissible fade show"
+          role="alert"
+          style="margin-bottom: auto"
+        >
+          <strong>Sind Sie sicher, dass Sie löschen wollen?</strong>
+          <p style="padding-top: 20px; padding-bottom: 20px">
+            Alle Informationen werden gelöscht.
+          </p>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+          <div style="text-align: right">
+            <a
+              class="btn btn-primary btn-sm"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+              >Abbrechen</a
+            >
+            <button id="btnDelete" type="button" class="btn btn-danger btn-sm">
+              Löschen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block js %}
+    <script src="{% static 'js/echarts.min.js' %}"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <script>
+        const INIT_BARCHART_URL = "{% url 'optirodig:barchart_handler' %}";
+        const DELETE_HANDLER_URL = "{% url 'optirodig:delete_handler' %}";
+        var FIRMA_NAME_lIST;
+        var TOTAL_SUM;
+
+        var PIECHARTRESULT = []
+
+        const TOOLBOX = {
+            show: true,
+            feature: {
+                mark: {show: true},
+                dataView: {show: true, readOnly: false},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        };
+
+
+       $(function(){
+            initAddModal();
+            bindSubmit();
+            initBarChart();
+            bindDeleteSubmit();
+            $('#data_source_lst').DataTable({
+              "aLengthMenu": [[3, 5, 10, -1], [3, 5, 10, "All"]],
+              "iDisplayLength": 3
+            });
+        });
+
+        function initAddModal(){
+            $('#addModal').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget);
+                const modal = $(this);
+                const title = button.data('whatever');
+                const telephone = button.data('telephone');
+                const email = button.data('email');
+                const street = button.data('street');
+                const name = button.data('name');
+                const plz = button.data('plz');
+                const city = button.data('city');
+                const fid = button.data('fid');
+                modal.find('.modal-title').text(title);
+
+                if(fid){
+                    // edit handler information
+                    modal.find("#id_name").val(name);
+                    modal.find("#id_telephone").val(telephone);
+                    modal.find("#id_email").val(email);
+                    modal.find("#id_street").val(street);
+                    modal.find("#id_plz").val(plz);
+                    modal.find("#id_city").val(city);
+                    modal.find("#fid").val(fid);
+                }else{
+                    // add handler information
+                    modal.find(".error-msg").empty();
+                    $("#addForm")[0].reset();
+                }
+            });
+
+                  // 为模态框绑定关闭事件
+              $("#alertModal").on("show.bs.modal", function (event) {
+                  const button = $(event.relatedTarget);
+                  const fid = button.data("fid");
+                  $("#btnDelete").attr("fid", fid);
+              });
+        }
+
+        function bindSubmit(){
+            $('#btnSubmit').click(function(){
+                $.ajax({
+                    url: location.href,
+                    type: 'POST',
+                    data: $('#addForm').serialize(),
+                    dataType: 'JSON',
+                    success: function(res){
+                        if(res.status){
+                            location.href = location.href;
+                        }else{
+                            $.each(res.errors, function(key, value) {
+                            $('#id_' + key).next().text(value[0]);
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        function bindDeleteSubmit() {
+            $("#btnDelete").click(function () {
+                const fid = $(this).attr("fid");
+
+                $.ajax({
+                    url: DELETE_HANDLER_URL,
+                    type: "GET",
+                    data: {
+                        fid: fid,
+                    },
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            location.href = location.href;
+                        }else{
+                              alert(res.errors);
+                        }
+                    }
+                });
+            });
+        }
+
+        function initBarChart(){
+           // Initialize the echarts instance based on the prepared dom
+             const myChart = echarts.init(document.getElementById('barChart'));
+
+             // Specify the configuration items and data for the chart
+             const option = {
+               title: {
+                 text: 'Gesamtschrottmenge für jedes Unternehmen',
+                   left: 'center',
+               },
+                 toolbox: TOOLBOX,
+               tooltip: {},
+               legend: {
+                 data: ['Gesamtschrottmenge'],
+                   bottom: 0,
+                left: 'center',
+               },
+               xAxis: {
+                 data: [],
+                   axisLabel: {
+                    interval: 0,
+                  }
+               },
+               yAxis: {},
+               series: [
+                 {
+                   name: 'Gesamtschrottmenge',
+                   type: 'bar',
+                   data: [],
+                     itemStyle: {color: '#7ED3F4'},
+                 }
+               ]
+             };
+
+               $.ajax({
+                   url: INIT_BARCHART_URL,
+                   type: 'GET',
+                   dataType: 'JSON',
+                   success: function(res){
+                       if(res.status) {
+                           FIRMA_NAME_lIST = res.data.firma_name_list;
+                           TOTAL_SUM = res.data.total_sum;
+
+                           // init values and names list for pichart
+                           FIRMA_NAME_lIST.forEach((key, index) => PIECHARTRESULT.push({value: TOTAL_SUM[index], name: key}))
+
+                           option.xAxis.data = FIRMA_NAME_lIST;
+                           option.series[0].data = TOTAL_SUM;
+                           myChart.setOption(option);
+                           initPieChart();
+                       }else{
+                           swal({
+                               title: res.errors,
+                               icon: "error",
+                               button: "OK!",
+                           });
+                       }
+                   }
+               });
+        }
+
+        function initPieChart(){
+            const pieChart = echarts.init(document.getElementById('pieChart'));
+            const option = {
+                  tooltip: {
+                trigger: 'item'
+              },
+              legend: {
+                top: '5%',
+                left: 'center'
+              },
+                toolbox: TOOLBOX,
+              series: [
+                {
+                  name: 'Gesamtschrottmenge',
+                  type: 'pie',
+                  radius: ['40%', '70%'],
+                  avoidLabelOverlap: false,
+                  itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                  },
+                  label: {
+                    show: false,
+                    position: 'center'
+                  },
+                  emphasis: {
+                    label: {
+                      show: true,
+                      fontSize: '20',
+                      fontWeight: 'bold'
+                    }
+                  },
+                  labelLine: {
+                    show: false
+                  },
+                    data: []
+                    }
+                  ]
+                };
+            option.series[0].data = PIECHARTRESULT;
+            pieChart.setOption(option);
+        }
+
+
+
+    </script>
+{% endblock js %}

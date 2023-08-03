@@ -1,0 +1,600 @@
+{% extends "base_generic_non_header.html" %}
+
+{% load static %}
+
+{% block content %}
+
+<script type="text/javascript">
+    <!--Auto Reload for experiment-->
+    get_task_result({{experiment_obj.task.status}}, '{{experiment_obj.task.task_id}}');
+
+    <!--Auto Reload for Predict-->
+    {% for predict_obj in predict_objs %}
+    get_task_result({{predict_obj.task.status}}, '{{predict_obj.task.task_id}}');
+    {% endfor %}
+
+     <!--Auto Reload for Optimierung-->
+    {% for optimierung_obj in schrottoptimierung_objs %}
+    get_task_result({{optimierung_obj.task.status}}, '{{optimierung_obj.task.task_id}}');
+    {% endfor %}  
+
+    var task_status = {{experiment_obj.task.status}};
+    var is_ready = false;
+    {% comment %} var lower_bound = 0;
+    var upper_bound = 0;
+    var optimal_value = 0; {% endcomment %}
+
+    if (task_status == 2){
+        var is_ready = true;
+        var feature_importance = {{ feature_importance |safe }};
+        var models_performance = {{ models_performance |safe }};
+        {% comment %} var lower_y = {{ lower_y |safe }};
+        var upper_y = {{ upper_y |safe }}; {% endcomment %}
+    }
+
+    {% comment %} if ("{{gaugesetting_obj|safe}}" != "None"){
+        lower_bound = {{ gaugesetting_obj.lower_bound|safe }};
+        upper_bound = {{ gaugesetting_obj.upper_bound |safe }};
+        optimal_value = {{ gaugesetting_obj.optimal_value |safe }};
+    } {% endcomment %}
+
+    
+</script>
+
+<header>
+    <nav class="navbar navbar-dark bg-dark">
+        <ul class="navbar-nav mr-auto" style="float:left">
+
+            <li class="nav-item active" >
+
+                <a class="nav-link" href="{% url 'main:ml_home' %}">
+                    <img src="{% static 'img/logo.png' %}" height="50px" style="padding-left:30px"/>
+                    <h4>Optimierungstool</h4></a>
+            </li>
+
+        </ul>
+        <ul class="row" style="float:right">
+
+            <div class="header-card bg-c">
+                <div class="header-card-block">
+                    <h6 class="m-b-20">Status</h6>
+                    <h3 class="text-right">
+                        <a role="button" href="{% url 'main:task_detail' experiment_obj.task.task_id %}"><span>
+                            {% if experiment_obj.task.status == 0 %}
+                                Pending
+                            {% elif experiment_obj.task.status == 1 %}
+                                Running
+                            {% elif experiment_obj.task.status == 2 %}
+                                Success
+                            {% else %}
+                                Fail
+                            {% endif %}
+                        </span></a></h4>
+                        </h3>
+                </div>
+            </div>
+
+            <div class="header-card bg-c">
+                <div class="header-card-block">
+                    <h6 class="m-b-20">Target</h6>
+                    <h3 class="text-right"><i class="fa fa-rocket f-left"></i>{{ experiment_obj.target.column_name | truncatechars:15 |title }}</h3>
+                </div>
+            </div>
+
+            <div class="header-card bg-c">
+                <div class="header-card-block">
+                    <h6 class="m-b-20">{{ experiment_obj.score }}</h6>
+                    <h3 class="text-right"><ion-icon class="f-left" name="infinite-outline"></ion-icon>{{best_model_obj.score_val|floatformat:2 }}</h3>
+                </div>
+            </div>
+
+            <div class="header-card bg-c">
+                <div class="header-card-block">
+                    <h6 class="m-b-20">Model Type</h6>
+                    <h3 class="text-right"><i class="fa fa-refresh f-left"></i><span>{{ experiment_obj.problem_type|title  }}</span></h3>
+                </div>
+            </div>
+
+            <div class="header-card bg-c">
+                <div class="header-card-block">
+                    <h6 class="m-b-20">Data &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h6>
+                    <h4 class="text-right"><ion-icon class="f-left" name="reader-outline"></ion-icon>
+                        {% if experiment_obj.file.file_eda.task.status == 2 %}
+                            <a href="{% url 'main:file_eda' experiment_obj.file.file_id %}"  target="_blank"><span>{{ experiment_obj.file.file_name | truncatechars:15}}</span></a>
+                        {% else %}
+                            <span>{{ experiment_obj.file.file_name | truncatechars:15}}</span>
+                        {% endif %}
+
+                    </h4>
+                </div>
+            </div>
+        </ul>
+    </nav>
+</header>
+<body>
+    <main role="main" >
+        {% if experiment_obj.task.status == 2 %}
+            <div class="form__container">
+                
+                <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#chartTable">
+                    Show Models Performance +
+                </button>
+
+                <div class="card collapse mt-3" id="chartTable">
+
+                    <div class="title__container">
+                        <h1>Experiment Performance</h1>
+                    </div>
+
+                    <div class="row chart_top">
+                        <div class="col">
+                            <h5 class="title" style="text-align:center">Models Performance</h5>
+                            <div id="chart_models" ></div>
+                        </div>
+
+                        <div class="col">
+                            <h5 class="title" style="text-align:center">Features Importance ({{ best_model_obj.model_name }})</h5>
+                            <canvas id="chart_feature_importance" class="chart"></canvas>
+                        </div>
+
+                    </div>
+                </div>
+
+                <button class="btn btn-info" type="button" data-toggle="collapse" data-target="#modelTable">
+                    Show Models Performance +
+                </button>
+                <div class="card collapse mt-3" id="modelTable">
+
+                    <div class="table-responsive custom-table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Model Name</th>
+                                    <th scope="col">Test Score</th>
+                                    <th scope="col">Validation Score</th>
+                                    <th scope="col">Training Time</th>
+                                    <th scope="col">Predict Time</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model_obj in model_objs %}
+                                    <tr scope="row">
+                                        <td><a href="{% url 'main:model_detail' model_obj.model_id %}">{{ model_obj.model_name }}
+                                                {% if model_obj.model_id == best_model_obj.model_id %}
+                                                    <ion-icon name="trophy-outline"></ion-icon>
+                                                {% endif %}
+                                            </a>
+                                        </td>
+                                        <td><button type="button" class="btn btn-outline-success btn-sm">&nbsp&nbsp{{ model_obj.score_test|floatformat:3}}</button></td>
+                                        <td><button type="button" class="btn btn-outline-success btn-sm">&nbsp&nbsp{{ model_obj.score_val|floatformat:3}}</button></td>
+
+                                        <td><button type="button" class="btn btn-outline-success btn-sm"><ion-icon name="timer-outline"></ion-icon>&nbsp&nbsp{{ model_obj.fit_time|floatformat:3}}s</button></td>
+                                        <td><button type="button" class="btn btn-outline-success btn-sm"><ion-icon name="timer-outline"></ion-icon>&nbsp&nbsp {{ model_obj.predict_time|floatformat:3}}s</button></td>
+
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="title__container" style="margin-top:30px">
+                    <h1>Prediction
+                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bd-example-modal-lg"> + </button>
+                    </h1>
+                    <div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+
+                                <form id="predict_form" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h3 class="modal-title">Create Prediction</h3>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span></button>
+                                    </div>
+
+                                    <div class="modal-body">
+
+                                        <div class="form-group input__container">
+                                            <label for="predict_name">Predict Name</label>
+                                            <input type="text" class="form-control" id="predict_name" name="predict_name" aria-describedby="emailHelp" placeholder="Enter Predict Name" required>
+                                        </div>
+                                        <div class="form-group input__container">
+                                            <label for="select_model" >Model</label></br>
+                                            <select class="form-select" id="select_model" name="select_model" required>
+                                                <option selected disabled value="">Choose Models</option>
+                                                {% for model_obj in model_objs %}
+                                                    <option value="{{ model_obj.model_id }}">{{ model_obj.model_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="invalid-feedback">Please select a valid state.</div>
+                                        </div>
+                                        <div class="form-group input__container">
+                                            <label class="form-label">File</label></br>
+                                            <div class="form-check form-check-inline form-group input__container" onclick="predict_selected_source()">
+                                                <input class="form-check-input" type="radio" name="exampleRadios" id="radio_external" checked>
+                                                <label for="radio_external">Upload predict file</label>
+                                            </div>
+                                            <div class="form-check form-check-inline form-group input__container" onclick="predict_selected_source()">
+                                                <input class="form-check-input" type="radio" name="exampleRadios" id="radio_internal">
+                                                <label for="radio_internal">Select from data management</label>
+                                            </div>
+                                        
+                                        <div>
+                                        <select class="form-select" id="select_internal_form" name="select_file">
+                                                <option selected disabled value="">Choose predict file</option>
+                                                {% for file_obj in file_objs %}
+                                                    <option value="{{ file_obj.file_id }}">{{ file_obj.file_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="custom-file my-3" id="select_external_form">
+                                                <input type="file" name="upload_file" class="custom-file-input" id="upload_file"/>
+                                                <label class="custom-file-label" for="upload_file" >Select file</label>
+                                        </div>
+                                         
+                                        <div class="invalid-feedback">Please select a valid state.</div>
+                                        </div>
+                                    </div>
+
+                                    <ul hidden>
+                                        <input name="model_id" id="model_id"/>
+                                        <input name="file_id" id="file_id"/>
+                                    </ul>
+
+                                    <div class="modal-footer">
+                                        <input class="btn btn-primary" type="submit" name="create_predict" value="Submit" id="create_predict">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive custom-table-responsive">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Predict Name</th>
+                                    <th scope="col">Models</th>
+                                    <th scope="col">Create Date</th>
+                                    <th scope="col">Predict File Name</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Download</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for predict_obj in predict_objs %}
+                                    <tr scope="row">
+                                        <td>{{ predict_obj.predict_name }}</td>
+                                        <td>{{ predict_obj.model.model_name }}</td>
+                                        <td>{{ predict_obj.create_datetime }}</td>
+                                        <td>{{ predict_obj.file.file_name }}</td>
+                                        <td><a role="button" href="{% url 'main:task_detail' predict_obj.task.task_id %}">
+                                            {% if predict_obj.task.status  == 0 %}
+                                                PENDING
+                                            {% elif predict_obj.task.status  == 1 %}
+                                                RUNNING
+                                            {% elif predict_obj.task.status  == 2 %}
+                                                SUCCESS
+                                            {% else %}
+                                                <span>Fail</span>
+                                            {% endif %}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if predict_obj.task.status  == 2 %}
+                                                <form method="POST" action="" id="download_predict_form">  {% csrf_token %}
+                                                    <button type="submit" class="btn btn-success" name="download_predict" value="{{ predict_obj.predict_id }}"><ion-icon name="download-outline"></ion-icon></button>
+                                                </form>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_confirm" onclick="delete_confirm('{{ predict_obj.predict_id }}', '{{ predict_obj.predict_name }}')">
+                                                <ion-icon name="trash-outline"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="title__container">
+                    <h2>Schrotte Simulation</h2>
+                </div>
+                    <div class="container-fluid mt-3">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <i class="fa-solid fa-database"></i> Simulation Einstellungen
+                                    </div>
+                                    <div class="card-body">
+                                        <form  method="post">
+                                                {% csrf_token %}
+                                                <div class="mb-3">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <label for="optimierung_name">Simulation Name</label>
+                                                            <input type="text" class="form-control" id="optimierung_name" name="optimierung_name" aria-describedby="emailHelp" placeholder="Enter Optimierung Name" required>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label for="select_optimierung_form">Wählen einen Stahltyp</label></br>
+                                                            <select class="custom-select" id="select_optimierung_form" name="select_stahl_type">
+                                                                <option selected disabled value="">Stahl Typ</option>
+                                                                {% for stahl_obj in stahl_objs %}
+                                                                    <option value="{{ stahl_obj.id }}">{{ stahl_obj.name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% comment %} 
+                                                <div class="mb-3">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <label for="select_giesserei_form">Wählen eine Giesserei</label></br>
+                                                            <select class="custom-select" id="select_giesserei_form" name="select_giesserei_name">
+                                                                <option selected disabled value="">Giessereien</option>
+                                                                {% for giesserei_obj in giesserei_objs %}
+                                                                    <option value="{{ giesserei_obj.id }}">{{ giesserei_obj.giesserei }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label for="stahl_quantity" class="form-label">Wie viele Kg zu produzieren</label>
+                                                            <input type="number" class="form-control" id="stahl_quantity" name="stahl_quantity" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endcomment %}
+                                                <div class="mb-3">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <label for="stahl_quantity" class="form-label">Wie viele Kg zu produzieren</label>
+                                                            <input type="number" class="form-control" id="stahl_quantity" name="stahl_quantity" required>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label for="select_optimierung_file_form">Wählen originale Datei</label></br>
+                                                            <select class="custom-select" id="select_optimierung_file_form" name="select_file_optimierung">
+                                                                <option selected disabled value="">Datei</option>
+                                                                    {% for file_obj in file_objs %}
+                                                                        <option value="{{ file_obj.file_id }}">{{ file_obj.file_name }}</option>
+                                                                    {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                        <div class="my-3">
+                                                            <input class="btn btn-primary" type="submit" name="schrott_optimierung" value="Simulation">
+                                                        </div>
+                                                </div>
+                                                </form>
+                                                {% comment %}
+                                                <div class="table-responsive custom-table-responsive">
+                                                    <table class="table custom-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">Simulation Name</th>
+                                                                <th scope="col">Create Date</th>
+                                                                <th scope="col">Stahl</th>
+                                                                <th scope="col">Giesserei</th>
+                                                                <th scope="col">Menge (kg)</th>
+                                                                <th scope="col">Status</th>
+                                                                <th scope="col">Optimal Value</th>
+                                                                <th scope="col">Delete</th>
+                                                                <th scope="col">Go To Detail</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for optimierung_obj in schrottoptimierung_objs %}
+                                                                <tr scope="row">
+                                                                    <td>{{ optimierung_obj.optimierung_name }}</td>
+                                                                    <td>{{ optimierung_obj.create_datetime }}</td>
+                                                                    <td>{{ optimierung_obj.selected_stahl }}</td>
+                                                                    <td>{{ optimierung_obj.selected_giesserei }}</td>
+                                                                    <td>{{ optimierung_obj.selected_stahl_quantity }}</td>
+                                                                    <td><a role="button" href="{% url 'main:task_detail' optimierung_obj.task.task_id %}">
+                                                                        {% if optimierung_obj.task.status  == 0 %}
+                                                                            PENDING
+                                                                        {% elif optimierung_obj.task.status  == 1 %}
+                                                                            RUNNING
+                                                                        {% elif optimierung_obj.task.status  == 2 %}
+                                                                            SUCCESS
+                                                                        {% else %}
+                                                                            <span>Fail</span>
+                                                                        {% endif %}
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>
+                                                                        {{ optimierung_obj.optimal_value |floatformat:2 }}
+                                                                    </td>
+                                                                    <td>
+                                                                        <button class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_optimierung_confirm" onclick="delete_optimierung_confirm('{{ optimierung_obj.optimierung_id }}', '{{ optimierung_obj.optimierung_name }}')">
+                                                                            <ion-icon name="trash-outline"/>
+                                                                        </button>
+                                                                    </td> 
+                                                                    <td class="text-center">
+                                                                        <a role="button" href="{% url 'main:optimierung_detail' optimierung_obj.optimierung_id %}"> 
+                                                                            <ion-icon name="eye-outline" size="large"/>
+                                                                        </a>  
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                    </div> 
+                                                {% endcomment %}
+                                            </div>
+                                        </div>
+                                    </div> 
+        
+                                {% comment %}
+                                <div class="col-lg-5 col-md-5 col-sm-12">
+                                {% endcomment %}
+                                <div class="col-md-7">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex align-items-center">
+                                            <span class="ms-2">Simulation Results</span>
+                                        </div>
+                                        <div class="table-responsive custom-table-responsive">
+                                                    <table class="table custom-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">Name</th>
+                                                                <th scope="col">Erstelldatum</th>
+                                                                <th scope="col">Stahl</th>                                               
+                                                                {% comment "" %}<th scope="col">Giesserei</th>{% endcomment %}
+                                                                <th scope="col">Menge (kg)</th>
+                                                                <th scope="col">Status</th>
+                                                                <th scope="col">Gesamtpreis</th>
+                                                                <th scope="col">Einkaufslist</th>
+                                                                <th scope="col">Bestellen</th>
+                                                                <th scope="col">Delete</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for optimierung_obj in schrottoptimierung_objs %}
+                                                                <tr class="text-center" scope="row">
+                                                                    <td>{{ optimierung_obj.optimierung_name }}</td>
+                                                                    <td>{{ optimierung_obj.create_datetime }}</td>
+                                                                    <td>{{ optimierung_obj.selected_stahl }}</td>
+                                                                    {% comment "" %}
+                                                                    <td>{{ optimierung_obj.selected_giesserei }}</td>
+                                                                    {% endcomment %}
+                                                                    <td>{{ optimierung_obj.selected_stahl_quantity }}</td>
+                                                                    <td><a role="button" href="{% url 'main:task_detail' optimierung_obj.task.task_id %}">
+                                                                        {% if optimierung_obj.task.status  == 0 %}
+                                                                            PENDING
+                                                                        {% elif optimierung_obj.task.status  == 1 %}
+                                                                            RUNNING
+                                                                        {% elif optimierung_obj.task.status  == 2 %}
+                                                                            SUCCESS
+                                                                        {% else %}
+                                                                            <span>Fail</span>
+                                                                        {% endif %}
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>
+                                                                        {{ optimierung_obj.optimal_value |floatformat:2 }}
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <a role="button" href="{% url 'main:optimierung_detail' optimierung_obj.optimierung_id %}"> 
+                                                                            <ion-icon name="eye-outline" size="large"/>
+                                                                        </a>  
+                                                                    </td>
+                                                                    <td>
+                                                                        <button class="btn btn-outline-success" data-toggle="modal" data-target="#bestellen_optimierung_confirm" onclick="bestellen_optimierung_confirm('{{ optimierung_obj.optimierung_id }}', '{{ optimierung_obj.optimierung_name }}')">
+                                                                            <ion-icon name="add-circle-outline"/>
+                                                                        </button>
+                                                                    </td>
+                                                                    <td>
+                                                                        <button class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_optimierung_confirm" onclick="delete_optimierung_confirm('{{ optimierung_obj.optimierung_id }}', '{{ optimierung_obj.optimierung_name }}')">
+                                                                            <ion-icon name="trash-outline"/>
+                                                                        </button>
+                                                                    </td> 
+                                                        
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                        {% comment %}
+                                        <div class="card-body d-flex flex-column">
+                                            <div id="konvergenzstudie" class="flex-grow-1" style="min-height: 400px; width: 100%;">
+                                                {% autoescape off %}
+                                                {{ plot_div }}
+                                                {% endautoescape %}
+                                            </div>
+                                        </div>
+                                        {% endcomment %}
+                                    </div>
+                            </div>
+
+        </div>
+          
+            </div>
+        {% endif %}
+
+    </main>
+</body>
+
+ <div class="modal fade" id="delete_confirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="POST" action="" id="delete_predict_form"> {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-body">
+                Are you sure delete <p id="delete_predict_name"/> file ?
+                    <ul hidden>
+                        <li><input type="text" id="delete_predict_id" name="delete_predict_id"></li>
+                    </ul>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger" name="delete_predict" value="delete_predict">Delete</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div> 
+
+<div class="modal fade" id="delete_optimierung_confirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="POST" action="" id="delete_optimierung_form"> 
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-body">
+                Are you sure delete <p id="delete_optimierung_name"/> file ?
+                    <ul hidden>
+                        <li><input type="text" id="delete_optimierung_id" name="delete_optimierung_id"></li>
+                    </ul>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger" name="delete_optimierung" value="delete_optimierung">Delete</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="bestellen_optimierung_confirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form method="POST" action="" id="bestellen_optimierung_form"> 
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-body">
+                Add to the cart! <p id="bestellen_optimierung_name"/>
+                    <ul hidden>
+                        <li><input type="text" id="bestellen_optimierung_id" name="bestellen_optimierung_id"></li>
+                    </ul>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" name="bestellen_optimierung" value="bestellen_optimierung">Bestellen</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<link rel="stylesheet" href="{% static 'css/experiment/detail.css' %}">
+<script src="{% static 'javascript/experiment/detail.js' %}" ></script>
+<script src="{% static 'javascript/echarts.min.js' %}"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+{% endblock %}
+
+</html>
