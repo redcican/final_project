@@ -14,7 +14,6 @@ EasyML will help you generate more than 10 models with evaluation score.
 
 **There are alot of features need to be added, so it would be great if you can join with me**
 
-Feel free to reach out to me on LinkedIn (http://www.linkedin.com/in/lucnguyenvn) if you would like to discuss further, it would be a pleasure (honestly).
 
 ## 2. How to use EasyML
 
@@ -48,13 +47,76 @@ This function still implementing. I will release it as soon as possible.
 
 ![img_5.png](docs/img/img_5.png)
 
-### 5. How to run
+### 5. How to install
+
+#### pip install -r src/requirements.txt
+
+#### Install Redis
+
+#### Install PostgresSQL
+
+#### Go to src/mlplatform/settings.py and change database config
+
+Change the database config to your postgresql config
+
+``` python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mlplatform',
+        'USER': 'postgres',
+        'PASSWORD': 1228,
+        'HOST': 'localhost',
+        'PORT': 5432,
+    }
+}
+```
+
+Change the Celery config 
+
+``` python
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+
+```
+
+### 6. How to run
+
+#### Django Database migration
+```python
+python manage.py migrate
+```
+
+#### Manually add data from script
+run src/scripts/load_scrap.py, run it `three` times to add data from csv files.
+
+```python
+if __name__ == '__main__':
+    #run()
+    #run_giesserei()
+    run_chemi()
+```
+
+#### Check PostgresSQL from interface (pg Admin4)
+if there are not data available, run
+
+```python
+python manage.py migrate --run-syncdb
+```
+to sync the dataset
+
 
 #### Start django service
+```python
 python manage.py runserver --noreload
+```
 
-#### Start celery flower service
-celery -A mlplatform flower --port=5555 
-
-#### Start worker
+#### Start worker (new terminal)
+```python
 celery -A mlplatform worker -s /tmp/tmp.db --pool=solo -l info
+```
+
+#### Start celery flower service (optional, new terminal)
+```python
+celery -A mlplatform flower --port=5555 
+```
