@@ -88,7 +88,11 @@ python manage.py migrate
 ```
 
 #### Manually add data from script
-run src/scripts/load_scrap.py, run it `three` times to add data from csv files.
+run 
+```python
+python src/scripts/load_scrap.py
+```
+run it `three` times to add data from csv files.
 
 ```python
 if __name__ == '__main__':
