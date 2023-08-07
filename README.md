@@ -84,7 +84,10 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 
 #### Django Database migration
 ```python
-python manage.py migrate
+python manage.py makemigrations main
+python manage.py migrate main
+python manage.py makemigrations optirodig
+python manage.py migrate optirodig
 ```
 
 #### Manually add data from script
