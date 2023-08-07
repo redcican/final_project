@@ -777,14 +777,6 @@ def experiment_detail(request, pk):
 
         return redirect("main:experiment_detail", pk=pk)
     
-    # Processing optimierung bestellen
-    if request.POST.get("bestellen_optimierung"):
-        optimierung_id = request.POST.get("bestellen_optimierung_id")
-
-
-        return redirect("main:experiment_detail", pk=pk)
-
-    
     # MAIN.
     if request.method == "GET":
         experiment_obj = Experiment.get_experiment_ui(pk)

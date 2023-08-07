@@ -456,7 +456,6 @@
                                                                 <th scope="col">Status</th>
                                                                 <th scope="col">Gesamtpreis</th>
                                                                 <th scope="col">Einkaufslist</th>
-                                                                <th scope="col">Bestellen</th>
                                                                 <th scope="col">Delete</th>
                                                             </tr>
                                                         </thead>
@@ -489,11 +488,6 @@
                                                                         <a role="button" href="{% url 'main:optimierung_detail' optimierung_obj.optimierung_id %}"> 
                                                                             <ion-icon name="eye-outline" size="large"/>
                                                                         </a>  
-                                                                    </td>
-                                                                    <td>
-                                                                        <button class="btn btn-outline-success" data-toggle="modal" data-target="#bestellen_optimierung_confirm" onclick="bestellen_optimierung_confirm('{{ optimierung_obj.optimierung_id }}', '{{ optimierung_obj.optimierung_name }}')">
-                                                                            <ion-icon name="add-circle-outline"/>
-                                                                        </button>
                                                                     </td>
                                                                     <td>
                                                                         <button class="btn btn-outline-danger" data-toggle="modal" data-target="#delete_optimierung_confirm" onclick="delete_optimierung_confirm('{{ optimierung_obj.optimierung_id }}', '{{ optimierung_obj.optimierung_name }}')">
@@ -566,26 +560,7 @@
         </form>
     </div>
 </div>
-<div class="modal fade" id="bestellen_optimierung_confirm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <form method="POST" action="" id="bestellen_optimierung_form"> 
-            {% csrf_token %}
-            <div class="modal-content">
-                <div class="modal-body">
-                Add to the cart! <p id="bestellen_optimierung_name"/>
-                    <ul hidden>
-                        <li><input type="text" id="bestellen_optimierung_id" name="bestellen_optimierung_id"></li>
-                    </ul>
-                </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success" name="bestellen_optimierung" value="bestellen_optimierung">Bestellen</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 
 <link rel="stylesheet" href="{% static 'css/experiment/detail.css' %}">
